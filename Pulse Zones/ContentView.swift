@@ -7,12 +7,17 @@
 
 import SwiftUI
 
+enum Gender: String, CaseIterable {
+    case female = "женский"
+    case male = "мужской"
+    case binary = "бинарный"
+    case other = "другой"
+}
+
 struct GenderAgeView: View {
     
     @Binding var gender: String
     @Binding var age: Double
-    
-    let genders = ["женский", "мужской", "бинарный", "другой"]
     
     var body: some View {
         Group {
@@ -20,7 +25,7 @@ struct GenderAgeView: View {
                 Text("Пол")
                 
                 Picker("Пол", selection: $gender) {
-                    ForEach(genders, id: \.self) { gender in
+                    ForEach(Gender.allCases.map { $0.rawValue }, id: \.self) { gender in
                         Text(gender).tag(0)
                     }
                 }
@@ -45,12 +50,9 @@ struct ZonesView: View {
     
     var body: some View {
         Group {
-            HStack {
-                Image(systemName: "heart")
-                Text("Пульсовые зоны".uppercased())
-            }
-            .foregroundColor(.secondary)
-            .font(.subheadline)
+            Label("Пульсовые зоны".uppercased(), systemImage: "heart")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
             
             ForEach(zones) { zone in
                 DisclosureGroup("\(zone.name): \(Int(maxPulse * zone.min))" + " – " + "\(Int(maxPulse * zone.max))"
@@ -69,10 +71,7 @@ struct ZonesView: View {
 struct NotesView: View {
     var body: some View {
         Group {
-            HStack {
-                Image(systemName: "text.justify")
-                Text("Примечания".uppercased())
-            }
+            Label("Примечания".uppercased(), systemImage: "text.justify")
             
             ForEach(zoneTerms.indices, id: \.self) { index in
                 DisclosureGroup(zoneTerms[index].key) {
@@ -89,14 +88,19 @@ struct NotesView: View {
 struct ContentView: View {
     
     @AppStorage("gender")
-    var gender = "женский"
+    private var gender = "женский"
     
+    //    private var gender: Gender {
+    //        get { Gender.init(rawValue: genderRawValue) ?? .female }
+    //        set { genderRawValue = newValue.rawValue }
+    //    }
+    //
     @AppStorage("age")
     private var age: Double = 30
     
     ///  Обобщенная формула подсчета МЧСС: 220 минус ваш возраст. Более современная формула: 214-(0.8 x возраст) для мужчин и 209-(0.9 x возраст) для женщин. Но более информативным будет получить значение в лабораторных условиях.
     var maxPulse: Double {
-        gender == "мужской"
+        gender == Gender.male.rawValue
             ? 214 - (0.80 * age)
             : 209 - (0.90 * age)
     }
@@ -104,6 +108,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading) {
+                
                 GenderAgeView(gender: $gender, age: $age)
                 
                 Divider()
