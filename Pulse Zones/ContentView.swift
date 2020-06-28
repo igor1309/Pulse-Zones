@@ -16,7 +16,7 @@ enum Gender: String, CaseIterable {
 
 struct GenderAgeView: View {
     
-    @Binding var gender: String
+    @Binding var gender: Gender
     @Binding var age: Double
     
     var body: some View {
@@ -25,8 +25,8 @@ struct GenderAgeView: View {
                 Text("Пол")
                 
                 Picker("Пол", selection: $gender) {
-                    ForEach(Gender.allCases.map { $0.rawValue }, id: \.self) { gender in
-                        Text(gender).tag(0)
+                    ForEach(Gender.allCases, id: \.self) { gender in
+                        Text(gender.rawValue).tag(0)
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -44,8 +44,6 @@ struct GenderAgeView: View {
 
 struct ZonesView: View {
     
-    let gender: String
-    let age: Double
     let maxPulse: Double
     
     var body: some View {
@@ -87,36 +85,37 @@ struct NotesView: View {
 
 struct ContentView: View {
     
-    @AppStorage("gender")
-    private var gender = "женский"
+    @AppStorage("gender") //  MARK: how to store enum??
+    private var genderRawValue = "женский"
     
-    //    private var gender: Gender {
-    //        get { Gender.init(rawValue: genderRawValue) ?? .female }
-    //        set { genderRawValue = newValue.rawValue }
-    //    }
-    //
     @AppStorage("age")
     private var age: Double = 30
     
     ///  Обобщенная формула подсчета МЧСС: 220 минус ваш возраст. Более современная формула: 214-(0.8 x возраст) для мужчин и 209-(0.9 x возраст) для женщин. Но более информативным будет получить значение в лабораторных условиях.
     var maxPulse: Double {
-        gender == Gender.male.rawValue
+        genderRawValue == Gender.male.rawValue
             ? 214 - (0.80 * age)
             : 209 - (0.90 * age)
     }
     
     var body: some View {
-        NavigationView {
+        
+        let gender = Binding<Gender>(
+            get: { Gender(rawValue: genderRawValue) ?? .female },
+            set: { genderRawValue = $0.rawValue }
+        )
+        
+        return NavigationView {
             VStack(alignment: .leading) {
                 
-                GenderAgeView(gender: $gender, age: $age)
+                GenderAgeView(gender: gender, age: $age)
                 
                 Divider()
                 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading) {
                         
-                        ZonesView(gender: gender, age: age, maxPulse: maxPulse)
+                        ZonesView(maxPulse: maxPulse)
                         
                         Divider()
                         
