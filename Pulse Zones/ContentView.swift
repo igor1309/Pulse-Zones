@@ -85,30 +85,23 @@ struct NotesView: View {
 
 struct ContentView: View {
     
-    @AppStorage("gender") //  MARK: how to store enum??
-    private var genderRawValue = "женский"
+    @AppStorage("gender")
+    private var gender = Gender.female
     
     @AppStorage("age")
     private var age: Double = 30
     
     ///  Обобщенная формула подсчета МЧСС: 220 минус ваш возраст. Более современная формула: 214-(0.8 x возраст) для мужчин и 209-(0.9 x возраст) для женщин. Но более информативным будет получить значение в лабораторных условиях.
     var maxPulse: Double {
-        genderRawValue == Gender.male.rawValue
+        gender == Gender.male
             ? 214 - (0.80 * age)
             : 209 - (0.90 * age)
     }
     
     var body: some View {
-        
-        let gender = Binding<Gender>(
-            get: { Gender(rawValue: genderRawValue) ?? .female },
-            set: { genderRawValue = $0.rawValue }
-        )
-        
-        return NavigationView {
+        NavigationView {
             VStack(alignment: .leading) {
-                
-                GenderAgeView(gender: gender, age: $age)
+                GenderAgeView(gender: $gender, age: $age)
                 
                 Divider()
                 
